@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Redirigiendo...</title>
+<style>
+  body { 
+    font-family: Arial; 
+    background: #f2f2f2; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    height: 100vh; 
+    margin: 0;
+  }
+  .box {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+    text-align: center;
+    max-width: 400px;
+  }
+  .btn {
+    display: inline-block;
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: #3498db;
+    color: #fff;
+    border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  #timer {
+    font-size: 30px;
+    font-weight: bold;
+    margin: 10px 0;
+  }
+</style>
+</head>
+
+<body>
+<div class="box">
+  <h2>Tu enlace está casi listo...</h2>
+  <p>Espera <span id="timer">8</span> segundos para continuar</p>
+
+  <!-- 🔥 AQUÍ PEGAS EL SCRIPT DE PUBLICIDAD DE ADSTERRA -->
+  
+  <!-- FIN DEL ANUNCIO -->
+
+  <a id="continue" class="btn" style="display:none;">Continuar</a>
+</div>
+
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const finalUrl = urlParams.get("url");
+
+  let time = 8;
+  const timer = document.getElementById("timer");
+  const continueBtn = document.getElementById("continue");
+
+  const countdown = setInterval(() => {
+    time--;
+    timer.textContent = time;
+
+    if (time <= 0) {
+      clearInterval(countdown);
+      continueBtn.style.display = "inline-block";
+      timer.textContent = "0";
+      continueBtn.onclick = () => window.location.href = decodeURIComponent(finalUrl);
+    }
+  }, 1000);
+</script>
+
+</body>
+</html>
