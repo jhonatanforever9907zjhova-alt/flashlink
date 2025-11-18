@@ -1,1 +1,277 @@
-<h1>Acortador funcionando</h1>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Obteniendo enlace...</title>
+
+<style>
+  :root{
+    --bg:#0f1720;
+    --card:#111827;
+    --accent:#0ea5ff;
+    --muted:#9ca3af;
+    --glass: rgba(255,255,255,0.03);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(180deg,#071428 0%, #0b1220 100%);
+    color:#e6eef8;
+    font-family:Inter,Arial,Helvetica,sans-serif;
+    padding:24px;
+  }
+  .card{
+    width:100%;
+    max-width:760px;
+    background:var(--card);
+    border-radius:12px;
+    padding:18px;
+    box-shadow:0 6px 30px rgba(2,6,23,0.6);
+    border: 1px solid rgba(255,255,255,0.02);
+  }
+  .row{display:flex;gap:12px;align-items:center}
+  .center{text-align:center}
+  h1{margin:0 0 6px;font-size:20px}
+  p.muted{color:var(--muted);margin:0 0 12px}
+  .timer{
+    font-size:48px;font-weight:700;
+    color:var(--accent)
+  }
+  .adbox{
+    margin:14px 0;
+    background:var(--glass);
+    border-radius:8px;
+    padding:12px;
+    min-height:90px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  #btnPrimary{
+    background:linear-gradient(90deg,#06b6d4,#0ea5ff);
+    border:none;color:#02121a;padding:12px 18px;border-radius:10px;
+    font-weight:700;font-size:16px;cursor:pointer;
+    display:none;
+  }
+  #btnCopy{
+    background:transparent;border:1px solid rgba(255,255,255,0.06);
+    color:inherit;padding:10px 14px;border-radius:10px;cursor:pointer;margin-left:8px;
+  }
+  .small{font-size:13px;color:var(--muted)}
+  .adblock-warning{background:#2b0b0b;padding:10px;border-radius:8px;color:#ffdada;margin-bottom:8px}
+  .captcha{
+    display:flex;gap:8px;align-items:center;justify-content:center;margin-top:8px;
+  }
+  .badge{background:rgba(255,255,255,0.03);padding:6px 10px;border-radius:999px;font-size:13px}
+  footer{margin-top:12px;text-align:center;color:var(--muted);font-size:13px}
+  @media(max-width:520px){
+    .row{flex-direction:column}
+  }
+</style>
+</head>
+<body>
+  <div class="card" role="main">
+    <div class="center">
+      <h1>Tu enlace está casi listo</h1>
+      <p class="muted">Mira el anuncio y luego obtén el enlace final</p>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+      <div class="row">
+        <div>
+          <div class="small">Tiempo restante</div>
+          <div class="timer" id="timer">8</div>
+        </div>
+        <div style="margin-left:18px">
+          <div class="small">Estado</div>
+          <div class="badge" id="status">Cargando anuncio…</div>
+        </div>
+      </div>
+
+      <div>
+        <button id="btnPrimary">Obtener enlace</button>
+        <button id="btnCopy" title="Copiar enlace">Copiar enlace</button>
+      </div>
+    </div>
+
+    <!-- advert area -->
+    <div class="adbox" id="adbox" aria-live="polite">
+      <!-- AQUI PEGA TU SCRIPT DE ADSTERRA (REEMPLAZA ADSTERRA_SCRIPT_HERE) -->
+      <!-- ADSTERRA SCRIPT EXAMPLE:
+      <script>atOptions = { 'key':'TU_KEY', 'format':'iframe', ... }</script>
+      <script src="//www.highperformanceformat.com/TU_KEY/invoke.js"></script>
+      -->
+      AD PLACEHOLDER
+    </div>
+
+    <!-- anti-adblock warning (hidden por defecto) -->
+    <div id="adblockWarn" class="adblock-warning" style="display:none">
+      Parece que estás usando un bloqueador de anuncios. Desactivarlo ayuda a que podamos ofrecer contenido gratuito.
+    </div>
+
+    <!-- fake captcha (client-side, simple UX) -->
+    <div class="center captcha" id="captchaBox" style="display:none">
+      <label class="small">Verificación:</label>
+      <input id="captchaInput" placeholder="Escribe 4 letras" style="padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06)" />
+      <button id="captchaBtn" style="padding:8px;border-radius:6px;background:var(--accent);border:none;color:#02121a;cursor:pointer">Verificar</button>
+    </div>
+
+    <p class="small center" style="margin-top:12px">
+      Si el botón no aparece, espera o intenta desactivar adblock. <br/>
+      Enlace final: <span id="finalHost" style="font-weight:600"></span>
+    </p>
+
+    <footer>Powered by tu acortador • Protegido por dominio</footer>
+  </div>
+
+<script>
+/* =============== CONFIGURA AQUI =============== */
+/* Dominio permitido (sin https://), por ejemplo 'tuusuario.github.io' o 'tuusuario.github.io/enlace-flash' */
+const ALLOWED_HOST = "TUUSUARIO.github.io"; // <- reemplaza por tu host real
+
+/* Tiempo del contador (segundos) */
+let COUNTDOWN = 8;
+
+/* Activar captcha (true/false) */
+const USE_FAKE_CAPTCHA = true;
+
+/* =============== LOGICA =============== */
+const urlParams = new URLSearchParams(window.location.search);
+const finalEnc = urlParams.get("r") || urlParams.get("url") || urlParams.get("dest");
+const finalBtn = document.getElementById("btnPrimary");
+const btnCopy = document.getElementById("btnCopy");
+const timerEl = document.getElementById("timer");
+const status = document.getElementById("status");
+const adbox = document.getElementById("adbox");
+const adblockWarn = document.getElementById("adblockWarn");
+const captchaBox = document.getElementById("captchaBox");
+const captchaInput = document.getElementById("captchaInput");
+const captchaBtn = document.getElementById("captchaBtn");
+const finalHost = document.getElementById("finalHost");
+
+finalHost.textContent = finalEnc ? decodeURIComponent(finalEnc).slice(0, 80) + (decodeURIComponent(finalEnc).length>80?"…":"") : "(no provisto)";
+
+/* dominio check: asegurar que la página se sirva desde tu dominio permitido */
+(function checkHost(){
+  const current = window.location.host;
+  if(!current.includes(ALLOWED_HOST)){
+    status.textContent = "Host no autorizado";
+    status.style.background="transparent";
+    adbox.innerHTML = "<div class='small'>Error: dominio no autorizado.</div>";
+    finalBtn.style.display = "none";
+    btnCopy.style.display = "none";
+    throw new Error("Host no autorizado");
+  }
+})();
+
+/* adblock detection simple: comprobamos si un elemento publicitario fue bloqueado */
+function detectAdblock(){
+  // creamos elemento que muchos adblocks ocultan
+  const bait = document.createElement('div');
+  bait.className = 'adsbox bait';
+  bait.style.width='1px';
+  bait.style.height='1px';
+  bait.style.position='absolute';
+  bait.style.left='-9999px';
+  document.body.appendChild(bait);
+  const blocked = (getComputedStyle(bait).display === 'none') || bait.offsetParent === null;
+  document.body.removeChild(bait);
+  return blocked;
+}
+
+/* Mostrar el estado del anuncio */
+function startSequence(){
+  if(!finalEnc){
+    status.textContent = "Falta parámetro ?r=";
+    status.style.color="#ffdada";
+    return;
+  }
+
+  // detect adblock
+  if(detectAdblock()){
+    adblockWarn.style.display = "block";
+    status.textContent = "Adblock detectado";
+  } else {
+    status.textContent = "Anuncio cargado";
+  }
+
+  // contador
+  let t = COUNTDOWN;
+  timerEl.textContent = t;
+  const interval = setInterval(() => {
+    t--;
+    timerEl.textContent = t;
+    if(t <= 0){
+      clearInterval(interval);
+      timerEl.textContent = "0";
+      // si requiere captcha, mostrarlo; si no, mostrar botón
+      if(USE_FAKE_CAPTCHA){
+        captchaBox.style.display = "flex";
+        status.textContent = "Verifica para obtener enlace";
+      } else {
+        finalBtn.style.display = "inline-block";
+        status.textContent = "Listo";
+      }
+    }
+  }, 1000);
+
+  // copiar enlace
+  btnCopy.addEventListener('click', () => {
+    const linkToCopy = window.location.href; // copia el URL corto
+    navigator.clipboard && navigator.clipboard.writeText(linkToCopy)
+      .then(()=> {
+        btnCopy.textContent = "Copiado";
+        setTimeout(()=>btnCopy.textContent = "Copiar enlace",1200);
+      })
+      .catch(()=> {
+        btnCopy.textContent = "Error al copiar";
+      });
+  });
+
+  // click final (sin captcha)
+  finalBtn.addEventListener('click', ()=> {
+    location.href = decodeURIComponent(finalEnc);
+  });
+}
+
+/* CAPTCHA falso: verificamos un texto simple (client-side) */
+if(USE_FAKE_CAPTCHA){
+  // generamos 4 letras aleatorias
+  const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  let code = '';
+  for(let i=0;i<4;i++){ code += letters.charAt(Math.floor(Math.random()*letters.length)); }
+  // mostramos placeholder con pista (para UX)
+  captchaInput.placeholder = "Escribe: " + code;
+  captchaBtn.addEventListener('click', () => {
+    if(captchaInput.value.trim().toUpperCase() === code){
+      // verificado
+      captchaBox.style.display = "none";
+      finalBtn.style.display = "inline-block";
+      status.textContent = "Verificado";
+    } else {
+      status.textContent = "Código incorrecto, inténtalo otra vez";
+      // regenerar pequeño
+      code = '';
+      for(let i=0;i<4;i++){ code += letters.charAt(Math.floor(Math.random()*letters.length)); }
+      captchaInput.placeholder = "Escribe: " + code;
+    }
+  });
+}
+
+/* Ejecutar secuencia luego de intentar cargar anuncio (damos pequeño delay) */
+window.addEventListener('load', ()=> {
+  // si el adbox contiene el placeholder text, dejamos igual; si insertaste tu script, a menudo coloca un iframe ahí.
+  setTimeout(()=> {
+    startSequence();
+  }, 700); 
+});
+
+/* Nota: para un anti-adblock más avanzado puedes integrar libs externas,
+   pero esto sirve como detección y UX básica. */
+</script>
+</body>
+</html>
+
