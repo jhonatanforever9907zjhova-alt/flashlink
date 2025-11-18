@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="utf-8" />
@@ -97,18 +97,15 @@
       </div>
     </div>
 
-    <!-- advert area -->
+    <!-- 📌 AQUI VA TU ANUNCIO ADSTERRA -->
     <div class="adbox" id="adbox" aria-live="polite">
-      <!-- 🔥 AQUÍ VA TU SCRIPT ADSTERRA (iframe/banner si usas uno) -->
       <script type='text/javascript' src='//pl28077552.effectivegatecpm.com/ff/e4/b3/ffe4b342f316ce3a55e944c51c4a9465.js'></script>
     </div>
 
-    <!-- anti-adblock warning -->
     <div id="adblockWarn" class="adblock-warning" style="display:none">
       Parece que estás usando un bloqueador de anuncios. Desactivarlo ayuda a que podamos ofrecer contenido gratuito.
     </div>
 
-    <!-- fake captcha -->
     <div class="center captcha" id="captchaBox" style="display:none">
       <label class="small">Verificación:</label>
       <input id="captchaInput" placeholder="Escribe 4 letras" style="padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06)" />
@@ -124,12 +121,12 @@
   </div>
 
 <script>
-/* =============== CONFIGURA AQUI =============== */
+/* CONFIG */
 const ALLOWED_HOST = "jhonatanforever9907jhov-alt.github.io";
 let COUNTDOWN = 8;
 const USE_FAKE_CAPTCHA = true;
 
-/* =============== LOGICA =============== */
+/* LOGICA */
 const urlParams = new URLSearchParams(window.location.search);
 const finalEnc = urlParams.get("r") || urlParams.get("url") || urlParams.get("dest");
 const finalBtn = document.getElementById("btnPrimary");
@@ -143,9 +140,9 @@ const captchaInput = document.getElementById("captchaInput");
 const captchaBtn = document.getElementById("captchaBtn");
 const finalHost = document.getElementById("finalHost");
 
-finalHost.textContent = finalEnc ? decodeURIComponent(finalEnc).slice(0, 80) + (decodeURIComponent(finalEnc).length>80?"…":"") : "(no provisto)";
+finalHost.textContent = finalEnc ? decodeURIComponent(finalEnc) : "(no provisto)";
 
-/* dominio check */
+/* validar dominio */
 (function checkHost(){
   const current = window.location.host;
   if(!current.includes(ALLOWED_HOST)){
@@ -171,10 +168,10 @@ function detectAdblock(){
   return blocked;
 }
 
+/* Secuencia */
 function startSequence(){
   if(!finalEnc){
     status.textContent = "Falta parámetro ?r=";
-    status.style.color="#ffdada";
     return;
   }
 
@@ -185,15 +182,13 @@ function startSequence(){
     status.textContent = "Anuncio cargado";
   }
 
-  // contador
   let t = COUNTDOWN;
   timerEl.textContent = t;
-  const interval = setInterval(() => {
+  const interval = setInterval(()=>{
     t--;
     timerEl.textContent = t;
     if(t <= 0){
       clearInterval(interval);
-      timerEl.textContent = "0";
 
       if(USE_FAKE_CAPTCHA){
         captchaBox.style.display = "flex";
@@ -203,58 +198,48 @@ function startSequence(){
         status.textContent = "Listo";
       }
     }
-  }, 1000);
+  },1000);
 
-  btnCopy.addEventListener('click', () => {
+  btnCopy.addEventListener('click',()=>{
     const linkToCopy = window.location.href;
-    navigator.clipboard.writeText(linkToCopy).then(()=>{
-      btnCopy.textContent = "Copiado";
-      setTimeout(()=>btnCopy.textContent = "Copiar enlace",1200);
-    });
+    navigator.clipboard.writeText(linkToCopy)
+      .then(()=>{ btnCopy.textContent="Copiado"; setTimeout(()=>btnCopy.textContent="Copiar enlace",1200); })
+      .catch(()=>{ btnCopy.textContent="Error"; });
   });
 
-  /* ⚡ AQUI DISPARAMOS TU POPUNDER AL HACER CLIC EN OBTENER ENLACE */
-  finalBtn.addEventListener('click', ()=> {
-    /* —— POPUNDER —— */
-    (function(){
-      let s = document.createElement('script');
-      s.src = "//pl28077552.effectivegatecpm.com/ff/e4/b3/ffe4b342f316ce3a55e944c51c4a9465.js";
-      document.body.appendChild(s);
-    })();
-    /* —— REDIRECCIÓN —— */
-    setTimeout(()=>{
-      location.href = decodeURIComponent(finalEnc);
-    }, 250);
+  finalBtn.addEventListener('click',()=>{
+    location.href = decodeURIComponent(finalEnc);
   });
 }
 
-/* captcha falso */
+/* CAPTCHA */
 if(USE_FAKE_CAPTCHA){
-  const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-  let code = '';
-  for(let i=0;i<4;i++){ code += letters.charAt(Math.floor(Math.random()*letters.length)); }
+  const letters='ABCDEFGHJKLMNPQRSTUVWXYZ';
+  let code='';
+  for(let i=0;i<4;i++) code += letters.charAt(Math.floor(Math.random()*letters.length));
+
   captchaInput.placeholder = "Escribe: " + code;
-  captchaBtn.addEventListener('click', () => {
+
+  captchaBtn.addEventListener('click',()=>{
     if(captchaInput.value.trim().toUpperCase() === code){
-      captchaBox.style.display = "none";
-      finalBtn.style.display = "inline-block";
-      status.textContent = "Verificado";
+      captchaBox.style.display="none";
+      finalBtn.style.display="inline-block";
+      status.textContent="Verificado";
     } else {
-      status.textContent = "Código incorrecto, inténtalo otra vez";
-      code = '';
-      for(let i=0;i<4;i++){ code += letters.charAt(Math.floor(Math.random()*letters.length)); }
+      status.textContent="Código incorrecto";
+      code='';
+      for(let i=0;i<4;i++) code += letters.charAt(Math.floor(Math.random()*letters.length));
       captchaInput.placeholder = "Escribe: " + code;
     }
   });
 }
 
-window.addEventListener('load', ()=> {
-  setTimeout(()=> {
-    startSequence();
-  }, 700); 
+window.addEventListener('load',()=>{
+  setTimeout(()=>{ startSequence(); },700);
 });
 </script>
 </body>
 </html>
+
 
 
