@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="utf-8" />
@@ -99,20 +99,16 @@
 
     <!-- advert area -->
     <div class="adbox" id="adbox" aria-live="polite">
-      <!-- AQUI PEGA TU SCRIPT DE ADSTERRA (REEMPLAZA ADSTERRA_SCRIPT_HERE) -->
-      <!-- ADSTERRA SCRIPT EXAMPLE:
-      <script>atOptions = { 'key':'TU_KEY', 'format':'iframe', ... }</script>
-      <script src="//www.highperformanceformat.com/TU_KEY/invoke.js"></script>
-      -->
-      AD PLACEHOLDER
+      <!-- 🔥 AQUÍ VA TU SCRIPT ADSTERRA (iframe/banner si usas uno) -->
+      <script type='text/javascript' src='//pl28077552.effectivegatecpm.com/ff/e4/b3/ffe4b342f316ce3a55e944c51c4a9465.js'></script>
     </div>
 
-    <!-- anti-adblock warning (hidden por defecto) -->
+    <!-- anti-adblock warning -->
     <div id="adblockWarn" class="adblock-warning" style="display:none">
       Parece que estás usando un bloqueador de anuncios. Desactivarlo ayuda a que podamos ofrecer contenido gratuito.
     </div>
 
-    <!-- fake captcha (client-side, simple UX) -->
+    <!-- fake captcha -->
     <div class="center captcha" id="captchaBox" style="display:none">
       <label class="small">Verificación:</label>
       <input id="captchaInput" placeholder="Escribe 4 letras" style="padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06)" />
@@ -129,13 +125,8 @@
 
 <script>
 /* =============== CONFIGURA AQUI =============== */
-/* Dominio permitido (sin https://), por ejemplo 'tuusuario.github.io' o 'tuusuario.github.io/enlace-flash' */
-const ALLOWED_HOST = "jhonatanforever9907jhov-alt.github.io"; // <- reemplaza por tu host real
-
-/* Tiempo del contador (segundos) */
+const ALLOWED_HOST = "jhonatanforever9907jhov-alt.github.io";
 let COUNTDOWN = 8;
-
-/* Activar captcha (true/false) */
 const USE_FAKE_CAPTCHA = true;
 
 /* =============== LOGICA =============== */
@@ -154,12 +145,11 @@ const finalHost = document.getElementById("finalHost");
 
 finalHost.textContent = finalEnc ? decodeURIComponent(finalEnc).slice(0, 80) + (decodeURIComponent(finalEnc).length>80?"…":"") : "(no provisto)";
 
-/* dominio check: asegurar que la página se sirva desde tu dominio permitido */
+/* dominio check */
 (function checkHost(){
   const current = window.location.host;
   if(!current.includes(ALLOWED_HOST)){
     status.textContent = "Host no autorizado";
-    status.style.background="transparent";
     adbox.innerHTML = "<div class='small'>Error: dominio no autorizado.</div>";
     finalBtn.style.display = "none";
     btnCopy.style.display = "none";
@@ -167,9 +157,8 @@ finalHost.textContent = finalEnc ? decodeURIComponent(finalEnc).slice(0, 80) + (
   }
 })();
 
-/* adblock detection simple: comprobamos si un elemento publicitario fue bloqueado */
+/* detectar adblock */
 function detectAdblock(){
-  // creamos elemento que muchos adblocks ocultan
   const bait = document.createElement('div');
   bait.className = 'adsbox bait';
   bait.style.width='1px';
@@ -182,7 +171,6 @@ function detectAdblock(){
   return blocked;
 }
 
-/* Mostrar el estado del anuncio */
 function startSequence(){
   if(!finalEnc){
     status.textContent = "Falta parámetro ?r=";
@@ -190,7 +178,6 @@ function startSequence(){
     return;
   }
 
-  // detect adblock
   if(detectAdblock()){
     adblockWarn.style.display = "block";
     status.textContent = "Adblock detectado";
@@ -207,7 +194,7 @@ function startSequence(){
     if(t <= 0){
       clearInterval(interval);
       timerEl.textContent = "0";
-      // si requiere captcha, mostrarlo; si no, mostrar botón
+
       if(USE_FAKE_CAPTCHA){
         captchaBox.style.display = "flex";
         status.textContent = "Verifica para obtener enlace";
@@ -218,42 +205,42 @@ function startSequence(){
     }
   }, 1000);
 
-  // copiar enlace
   btnCopy.addEventListener('click', () => {
-    const linkToCopy = window.location.href; // copia el URL corto
-    navigator.clipboard && navigator.clipboard.writeText(linkToCopy)
-      .then(()=> {
-        btnCopy.textContent = "Copiado";
-        setTimeout(()=>btnCopy.textContent = "Copiar enlace",1200);
-      })
-      .catch(()=> {
-        btnCopy.textContent = "Error al copiar";
-      });
+    const linkToCopy = window.location.href;
+    navigator.clipboard.writeText(linkToCopy).then(()=>{
+      btnCopy.textContent = "Copiado";
+      setTimeout(()=>btnCopy.textContent = "Copiar enlace",1200);
+    });
   });
 
-  // click final (sin captcha)
+  /* ⚡ AQUI DISPARAMOS TU POPUNDER AL HACER CLIC EN OBTENER ENLACE */
   finalBtn.addEventListener('click', ()=> {
-    location.href = decodeURIComponent(finalEnc);
+    /* —— POPUNDER —— */
+    (function(){
+      let s = document.createElement('script');
+      s.src = "//pl28077552.effectivegatecpm.com/ff/e4/b3/ffe4b342f316ce3a55e944c51c4a9465.js";
+      document.body.appendChild(s);
+    })();
+    /* —— REDIRECCIÓN —— */
+    setTimeout(()=>{
+      location.href = decodeURIComponent(finalEnc);
+    }, 250);
   });
 }
 
-/* CAPTCHA falso: verificamos un texto simple (client-side) */
+/* captcha falso */
 if(USE_FAKE_CAPTCHA){
-  // generamos 4 letras aleatorias
   const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
   let code = '';
   for(let i=0;i<4;i++){ code += letters.charAt(Math.floor(Math.random()*letters.length)); }
-  // mostramos placeholder con pista (para UX)
   captchaInput.placeholder = "Escribe: " + code;
   captchaBtn.addEventListener('click', () => {
     if(captchaInput.value.trim().toUpperCase() === code){
-      // verificado
       captchaBox.style.display = "none";
       finalBtn.style.display = "inline-block";
       status.textContent = "Verificado";
     } else {
       status.textContent = "Código incorrecto, inténtalo otra vez";
-      // regenerar pequeño
       code = '';
       for(let i=0;i<4;i++){ code += letters.charAt(Math.floor(Math.random()*letters.length)); }
       captchaInput.placeholder = "Escribe: " + code;
@@ -261,17 +248,13 @@ if(USE_FAKE_CAPTCHA){
   });
 }
 
-/* Ejecutar secuencia luego de intentar cargar anuncio (damos pequeño delay) */
 window.addEventListener('load', ()=> {
-  // si el adbox contiene el placeholder text, dejamos igual; si insertaste tu script, a menudo coloca un iframe ahí.
   setTimeout(()=> {
     startSequence();
   }, 700); 
 });
-
-/* Nota: para un anti-adblock más avanzado puedes integrar libs externas,
-   pero esto sirve como detección y UX básica. */
 </script>
 </body>
 </html>
+
 
